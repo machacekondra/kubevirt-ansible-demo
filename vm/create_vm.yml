@@ -1,0 +1,28 @@
+- hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Create VM
+      kubevirt_vm:
+        state: "{{ vmstate | default('present') }}"
+        name: "{{ vmname | default('myvm') }}"
+        namespace: "{{ vmnamespace | default('default')}}"
+        wait_timeout: "{{ vmwaittimeout | default(240) }}"
+        memory: "{{ vmmemory | default('1024') }}M"
+        cloud_init_nocloud:
+          userData: |-
+            password: fedora
+            chpasswd: { expire: False }
+        interfaces:
+          - name: default
+            bridge: {}
+            network:
+              pod: {}
+        disks:
+          - name: containerdisk
+            volume:
+              containerDisk:
+                image: "kubevirt/{{ vmdiskname | default('fedora-cloud') }}-container-disk-demo:v0.11.0"
+            disk:
+              bus: virtio
